@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Intake Tracker - Smart Health System</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-layout">
+    
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-brand">
+          <img src="../assets/images/logo.jpg" alt="Logo">
+          <div>
+            <span class="sidebar-brand-text">Smart Health</span>
+            <span class="text-xs text-muted block font-medium">& Diet System</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <a href="dashboard.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard Overview
+          </a>
+          <a href="health-profile.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Health Profile & Goals
+          </a>
+          <a href="meal-logger.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Meal Logger & Calories
+          </a>
+          <a href="water-tracker.html" class="sidebar-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            Water Intake Tracker
+          </a>
+          <a href="sleep-tracker.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            Sleep Tracker
+          </a>
+          <a href="weight-progress.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Weight Progress
+          </a>
+          <a href="dietitian-plans.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Dietitian Meal Plans
+          </a>
+          <a href="recipes.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Recipes & Guides
+          </a>
+          <a href="calorie-reports.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Calorie Reports
+          </a>
+          <a href="chat.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Dietitian Chat
+          </a>
+        </nav>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+        <a href="../auth/login.html" class="sidebar-link text-danger" onclick="localStorage.removeItem('shd_current_user')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="9"/></svg>
+          Sign Out
+        </a>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+      
+      <header class="top-header">
+        <h1 class="text-xl font-bold">Daily Water Intake & Hydration Tracker</h1>
+        <div class="user-profile-menu">
+          <span class="font-bold text-sm">Fatema Rifa</span>
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="user-avatar">
+        </div>
+      </header>
+
+      <main class="dashboard-content">
+        
+        <div class="grid grid-3 gap-6">
+          
+          <!-- Water Progress Glass Display (2 Cols) -->
+          <div class="card text-center" style="grid-column: span 2;">
+            <div class="card-header">
+              <h2 class="card-title">Hydration Status Today</h2>
+              <span class="badge badge-primary">Target: 2.5 Liters</span>
+            </div>
+
+            <div style="margin: 32px 0;">
+              <div style="position: relative; width: 140px; height: 200px; margin: 0 auto; border: 4px solid #2563eb; border-radius: 0 0 var(--radius-xl) var(--radius-xl); overflow: hidden; background: #eff6ff;">
+                <div id="waterLevelFill" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 72%; background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%); transition: var(--transition);"></div>
+                <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.4);">
+                  <span class="stat-value" id="currentWaterLiters" style="font-size: 2.5rem; color: #fff;">1.8</span>
+                  <span class="text-sm font-bold">Liters</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Add Water Buttons -->
+            <div class="flex justify-center gap-3 flex-wrap">
+              <button class="btn btn-secondary" onclick="logWater(0.25)">+ 250 ml (1 Glass)</button>
+              <button class="btn btn-secondary" onclick="logWater(0.5)">+ 500 ml (1 Bottle)</button>
+              <button class="btn btn-secondary" onclick="logWater(1.0)">+ 1.0 Liter</button>
+              <button class="btn btn-outline text-danger" onclick="resetWater()">Reset Today</button>
+            </div>
+          </div>
+
+          <!-- Hydration Benefits Card (1 Col) -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Why Stay Hydrated?</h2>
+            </div>
+            
+            <ul style="font-size: 0.875rem; line-height: 1.8; color: var(--text-muted);">
+              <li>⚡ <strong>Boosts Energy:</strong> Prevents muscle fatigue during workouts.</li>
+              <li>🍏 <strong>Improves Digestion:</strong> Helps optimal calorie absorption.</li>
+              <li>🧠 <strong>Enhances Focus:</strong> Keeps your brain alert and healthy.</li>
+              <li>💧 <strong>Skin Health:</strong> Promotes natural skin glow and hydration.</li>
+            </ul>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="../assets/js/dummy-data.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    function renderWaterTracker() {
+      const water = SHD_Data.getWaterLog();
+      document.getElementById('currentWaterLiters').textContent = water.currentAmount;
+      const pct = Math.min(100, Math.round((water.currentAmount / water.targetAmount) * 100));
+      document.getElementById('waterLevelFill').style.height = pct + '%';
+    }
+
+    function logWater(amount) {
+      SHD_Data.addWater(amount);
+      renderWaterTracker();
+    }
+
+    function resetWater() {
+      const water = SHD_Data.getWaterLog();
+      water.currentAmount = 0;
+      localStorage.setItem('shd_water_intake', JSON.stringify(water));
+      renderWaterTracker();
+    }
+
+    document.addEventListener('DOMContentLoaded', renderWaterTracker);
+  </script>
+</body>
+</html>
