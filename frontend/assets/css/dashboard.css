@@ -117,9 +117,31 @@
 .message-sent { background: var(--primary-gradient); color: var(--text-white); align-self: flex-end; border-bottom-right-radius: 4px; }
 .chat-input-area { padding: 16px 24px; background-color: var(--bg-surface); border-top: 1px solid var(--border); display: flex; gap: 12px; }
 
+/* Shared admin page rhythm and responsive behavior. */
+.admin-page .top-header { gap: 24px; }
+.admin-page-title { min-width: 0; line-height: 1.25; }
+.admin-profile-copy { text-align: right; white-space: nowrap; }
+.admin-page .dashboard-content { padding-top: 28px; }
+.admin-page .card { overflow: hidden; }
+.admin-page .card-header { gap: 16px; }
+.admin-page .table th, .admin-page .table td { white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .admin-page .top-header { padding: 0 20px; }
+  .admin-page-title { font-size: 1.05rem; }
+  .admin-page .dashboard-content { padding: 24px 20px; }
+}
+
 @media (max-width: 768px) {
   .sidebar { position: fixed; left: -260px; }
   .sidebar.mobile-open { left: 0; }
+  .admin-page .top-header { min-height: 70px; height: auto; padding-top: 12px; padding-bottom: 12px; }
+  .admin-page .user-profile-menu { gap: 10px; }
+  .admin-page .admin-profile-copy { display: none; }
+  .admin-page .dashboard-content { padding: 20px 16px; }
+  .admin-page .card { padding: 20px; }
+  .admin-page .card-header { align-items: flex-start; flex-wrap: wrap; }
+  .admin-page .search-bar { max-width: none; }
   .dashboard-content { padding: 16px; }
   .chat-container { grid-template-columns: 1fr; }
 }
