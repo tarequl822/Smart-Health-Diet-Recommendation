@@ -16,6 +16,7 @@
     RECIPES: 'shd_recipes',
     MEAL_PLANS: 'shd_meal_plans',
     CHAT_MESSAGES: 'shd_chat_messages',
+    GUIDANCE_REQUESTS: 'shd_guidance_requests',
     FOOD_DATABASE: 'shd_food_database',
     AUDIT_LOGS: 'shd_audit_logs',
     SETTINGS: 'shd_settings'
@@ -173,6 +174,7 @@
       if (!localStorage.getItem(KEYS.SLEEP)) localStorage.setItem(KEYS.SLEEP, JSON.stringify(defaultSleepLog));
       if (!localStorage.getItem(KEYS.WEIGHT)) localStorage.setItem(KEYS.WEIGHT, JSON.stringify(defaultWeightHistory));
       if (!localStorage.getItem(KEYS.CHAT_MESSAGES)) localStorage.setItem(KEYS.CHAT_MESSAGES, JSON.stringify(defaultChats));
+      if (!localStorage.getItem(KEYS.GUIDANCE_REQUESTS)) localStorage.setItem(KEYS.GUIDANCE_REQUESTS, JSON.stringify([]));
       if (!localStorage.getItem(KEYS.RECIPES)) localStorage.setItem(KEYS.RECIPES, JSON.stringify(defaultRecipes));
       if (!localStorage.getItem(KEYS.AUDIT_LOGS)) localStorage.setItem(KEYS.AUDIT_LOGS, JSON.stringify(defaultAuditLogs));
       if (!localStorage.getItem(KEYS.SETTINGS)) localStorage.setItem(KEYS.SETTINGS, JSON.stringify(defaultSettings));
@@ -187,6 +189,7 @@
     getSleepLog: () => JSON.parse(localStorage.getItem(KEYS.SLEEP)) || defaultSleepLog,
     getWeightHistory: () => JSON.parse(localStorage.getItem(KEYS.WEIGHT)) || defaultWeightHistory,
     getChats: () => JSON.parse(localStorage.getItem(KEYS.CHAT_MESSAGES)) || [],
+    getGuidanceRequests: () => JSON.parse(localStorage.getItem(KEYS.GUIDANCE_REQUESTS)) || [],
     getRecipes: () => JSON.parse(localStorage.getItem(KEYS.RECIPES)) || [],
     getAuditLogs: () => JSON.parse(localStorage.getItem(KEYS.AUDIT_LOGS)) || [],
     getSettings: () => JSON.parse(localStorage.getItem(KEYS.SETTINGS)) || defaultSettings,
@@ -389,6 +392,30 @@
       chats.push(msg);
       localStorage.setItem(KEYS.CHAT_MESSAGES, JSON.stringify(chats));
       return chats;
+    },
+
+    addGuidanceRequest: function (request) {
+      const requests = this.getGuidanceRequests();
+      const newRequest = {
+        id: 'req_' + Date.now(),
+        status: 'Pending',
+        createdAt: new Date().toISOString(),
+        ...request
+      };
+      requests.unshift(newRequest);
+      localStorage.setItem(KEYS.GUIDANCE_REQUESTS, JSON.stringify(requests));
+      return newRequest;
+    },
+
+    updateGuidanceRequestStatus: function (id, status) {
+      const requests = this.getGuidanceRequests();
+      const request = requests.find(item => item.id === id);
+      if (request) {
+        request.status = status;
+        request.updatedAt = new Date().toISOString();
+        localStorage.setItem(KEYS.GUIDANCE_REQUESTS, JSON.stringify(requests));
+      }
+      return requests;
     }
   };
 
