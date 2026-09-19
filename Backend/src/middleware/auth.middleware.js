@@ -1,5 +1,7 @@
-import supabase from "../config/supabase.js";
 import pool from "../config/db.js";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretjwtkey";
 
 export const authenticate = async (req, res, next) => {
     try {
@@ -14,13 +16,10 @@ export const authenticate = async (req, res, next) => {
 
         const token = authHeader.split(" ")[1];
 
-        // Verify token with Supabase Auth
-        const {
-            data,
-            error
-        } = await supabase.auth.getUser(token);
-
-        if (error || !data.user) {
+        let tokenUser;
+        try {
+            tokenUser = jwt.verify(token, JWT_SECRET);
+        } catch {
             return res.status(401).json({
                 success: false,
                 message: "Invalid or expired token"
@@ -39,7 +38,7 @@ export const authenticate = async (req, res, next) => {
             FROM accounts
             WHERE id = $1
             `,
-            [data.user.id]
+            [tokenUser.id]
         );
 
         if (result.rows.length === 0) {
@@ -59,7 +58,7 @@ export const authenticate = async (req, res, next) => {
         }
 
         // Attach authenticated user
-        req.user = data.user;
+        req.user = tokenUser;
 
         // Attach application account
         req.account = account;

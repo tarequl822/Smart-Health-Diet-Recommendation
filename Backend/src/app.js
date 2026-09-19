@@ -3,6 +3,10 @@ import cors from "cors";
 
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
+import trackingRoutes from "./routes/tracking.routes.js";
+import foodRoutes from "./routes/food.routes.js";
+import userResourceRoutes from "./routes/user-resources.routes.js";
 
 const app = express();
 
@@ -19,6 +23,10 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 
 app.use("/api/users", userRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/tracking", trackingRoutes);
+app.use("/api/foods", foodRoutes);
+app.use("/api/user", userResourceRoutes);
 
 app.use((req, res) => {
     res.status(404).json({

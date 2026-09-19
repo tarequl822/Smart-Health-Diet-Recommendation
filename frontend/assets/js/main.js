@@ -3,6 +3,14 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', function () {
+  const currentUser = JSON.parse(localStorage.getItem('shd_current_user') || 'null');
+  if (currentUser) {
+    const displayName = currentUser.full_name || currentUser.name || currentUser.email;
+    document.querySelectorAll('.user-profile-menu .font-bold.text-sm').forEach(element => {
+      element.textContent = displayName;
+    });
+  }
+
   // Keep navigation state and mobile behavior consistent across dashboard pages.
   const currentPath = window.location.pathname.split('/').pop();
   const sidebarLinks = document.querySelectorAll('.sidebar-link');
@@ -51,6 +59,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Global UI helper object
   window.SHD_UI = {
+    apiBase: 'http://localhost:5000/api',
+    getToken: function () {
+      return localStorage.getItem('shd_token');
+    },
+    request: async function (path, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      const token = this.getToken();
+      if (token) headers.Authorization = 'Bearer ' + token;
+      if (options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+      const response = await fetch(this.apiBase + path, { ...options, headers });
+      let data = {};
+      try { data = await response.json(); } catch { /* Empty response such as 204. */ }
+      if (response.status === 401) {
+        this.clearSession();
+        window.location.href = '../auth/login.html';
+        throw new Error(data.message || 'Your session has expired');
+      }
+      if (!response.ok) throw new Error(data.message || 'Request failed');
+      return data;
+    },
+    clearSession: function () {
+      localStorage.removeItem('shd_token');
+      localStorage.removeItem('shd_current_user');
+      document.cookie = 'shd_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    },
     openModal: function (modalId) {
       const modal = document.getElementById(modalId);
       if (modal) modal.classList.add('active');
@@ -71,10 +104,15 @@ document.addEventListener('DOMContentLoaded', function () {
       } catch (e) {
         console.error("Logout request failed", e);
       }
-      localStorage.removeItem('shd_token');
-      localStorage.removeItem('shd_current_user');
-      document.cookie = "shd_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      this.clearSession();
       window.location.href = '../auth/login.html';
     }
   };
+
+  document.querySelectorAll('a.text-danger[href*="login.html"]').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      window.SHD_UI.logout();
+    });
+  });
 });

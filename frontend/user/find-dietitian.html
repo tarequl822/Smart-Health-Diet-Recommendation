@@ -90,37 +90,40 @@
     </div>
   </div>
 
-  <script src="../assets/js/dummy-data.js"></script>
   <script src="../assets/js/main.js"></script>
   <script>
-    const currentUser = SHD_Data.getCurrentUser() || { id: 'u1', name: 'Fatema Rifa', email: 'user@example.com' };
-    const user = SHD_Data.getUsers().find(item => item.email === currentUser.email) || SHD_Data.getUsers()[0];
-
-    function renderDietitians() {
+    async function renderDietitians() {
       const query = document.getElementById('dietitianSearch').value.trim().toLowerCase();
-      const requests = SHD_Data.getGuidanceRequests();
-      const dietitians = SHD_Data.getDietitians().filter(dietitian => dietitian.status === 'Approved' && (!query || `${dietitian.name} ${dietitian.specialty}`.toLowerCase().includes(query)));
       const directory = document.getElementById('dietitianDirectory');
-
-      directory.innerHTML = dietitians.length ? dietitians.map(dietitian => {
-        const request = requests.find(item => item.userId === user.id && item.dietitianId === dietitian.id && item.status === 'Pending');
+      try {
+        const [directoryData, requestData] = await Promise.all([
+          SHD_UI.request(`/user/dietitians?search=${encodeURIComponent(query)}`),
+          SHD_UI.request('/user/guidance-requests')
+        ]);
+        const requests = requestData.requests || [];
+        const dietitians = directoryData.dietitians || [];
+        directory.innerHTML = dietitians.length ? dietitians.map(dietitian => {
+        const request = requests.find(item => item.dietitian_id === dietitian.id && item.status === 'pending');
         return `<article class="card">
           <div class="flex items-center gap-4" style="margin-bottom: 16px;">
-            <img src="${dietitian.avatar}" alt="${dietitian.name}" class="user-avatar">
-            <div><h2 class="card-title">${dietitian.name}</h2><p class="text-sm text-muted">${dietitian.specialty}</p></div>
+            <img src="${dietitian.avatar_url || '../assets/images/images.jpeg'}" alt="${dietitian.full_name}" class="user-avatar">
+            <div><h2 class="card-title">${dietitian.full_name}</h2><p class="text-sm text-muted">${dietitian.specialty}</p></div>
           </div>
-          <div class="flex justify-between items-center" style="margin-bottom: 20px;"><span class="text-sm">${dietitian.experience} experience</span><strong class="text-accent">★ ${dietitian.rating}</strong></div>
+          <div class="flex justify-between items-center" style="margin-bottom: 20px;"><span class="text-sm">${dietitian.years_experience || 0} years experience</span><strong class="text-accent">★ ${dietitian.rating}</strong></div>
           <button class="btn ${request ? 'btn-outline' : 'btn-primary'} btn-full" ${request ? 'disabled' : ''} onclick="sendRequest('${dietitian.id}')">${request ? 'Request Pending' : 'Request Guidance'}</button>
         </article>`;
-      }).join('') : '<div class="card"><p class="text-muted">No approved dietitians match your search.</p></div>';
+        }).join('') : '<div class="card"><p class="text-muted">No approved dietitians match your search.</p></div>';
+      } catch (error) {
+        directory.innerHTML = `<div class="card"><p class="text-danger">${error.message}</p></div>`;
+      }
     }
 
-    function sendRequest(dietitianId) {
-      const dietitian = SHD_Data.getDietitians().find(item => item.id === dietitianId);
-      const existing = SHD_Data.getGuidanceRequests().find(item => item.userId === user.id && item.dietitianId === dietitianId && item.status === 'Pending');
-      if (existing) return;
-      SHD_Data.addGuidanceRequest({ userId: user.id, userName: user.name, userEmail: user.email, dietitianId, dietitianName: dietitian.name, goal: user.goal || 'Personal nutrition guidance' });
-      renderDietitians();
+    async function sendRequest(dietitianId) {
+      try {
+        const profile = await SHD_UI.request('/profile');
+        await SHD_UI.request('/user/guidance-requests', { method: 'POST', body: JSON.stringify({ dietitian_id: dietitianId, goal: profile.profile?.primary_goal || 'Personal nutrition guidance' }) });
+        await renderDietitians();
+      } catch (error) { alert(error.message); }
     }
 
     document.getElementById('dietitianSearch').addEventListener('input', renderDietitians);

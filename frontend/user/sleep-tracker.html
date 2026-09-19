@@ -147,28 +147,90 @@
     </div>
   </div>
 
-  <script src="../assets/js/dummy-data.js"></script>
   <script src="../assets/js/main.js"></script>
   <script>
-    function renderSleepTracker() {
-      const sleep = SHD_Data.getSleepLog();
-      document.getElementById('sleepHoursVal').textContent = `${sleep.durationHours} hrs`;
-      document.getElementById('sleepQualityVal').textContent = `${sleep.qualityScore}/100`;
-      document.getElementById('sleepScheduleVal').textContent = `${sleep.bedtime || '11:00 PM'} – ${sleep.wakeTime || '06:30 AM'}`;
+    const API_URL = 'http://localhost:5000/api';
+    
+    function getToken() {
+      return localStorage.getItem('shd_token');
     }
 
-    document.getElementById('sleepForm').addEventListener('submit', function (e) {
+    async function renderSleepTracker() {
+      const token = getToken();
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_URL}/tracking/sleep`, { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        
+        if (data.success && data.sleep_logs && data.sleep_logs.length > 0) {
+          const sleep = data.sleep_logs[0]; // Latest
+          document.getElementById('sleepHoursVal').textContent = `${sleep.duration_hours} hrs`;
+          document.getElementById('sleepQualityVal').textContent = `${sleep.quality_score}/100`;
+          
+          let scheduleText = "";
+          if (sleep.bedtime && sleep.wake_time) {
+              const bed = new Date(sleep.bedtime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+              const wake = new Date(sleep.wake_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+              scheduleText = `${bed} – ${wake}`;
+          } else {
+              scheduleText = "Not logged";
+          }
+          document.getElementById('sleepScheduleVal').textContent = scheduleText;
+        }
+      } catch (err) {
+        console.error("Error fetching sleep data:", err);
+      }
+    }
+
+    document.getElementById('sleepForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const sleep = {
-        userId: 'u1',
-        durationHours: parseFloat(document.getElementById('durationHours').value),
-        qualityScore: parseInt(document.getElementById('qualityScore').value),
-        bedtime: document.getElementById('bedtime').value,
-        wakeTime: document.getElementById('wakeTime').value
+      const token = getToken();
+      if (!token) return;
+
+      // HTML5 date inputs are better for actual time, but since it's text we'll just parse or send as is 
+      // The backend expects timestamptz for bedtime/wake_time, but can accept strings. 
+      // For simplicity, we'll try to convert these text strings into full ISO strings for today's date
+      
+      const durationHours = parseFloat(document.getElementById('durationHours').value);
+      const qualityScore = parseInt(document.getElementById('qualityScore').value);
+      
+      // Simple parse to ISO (mocking actual date picking for this prototype)
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const bedTimeInput = document.getElementById('bedtime').value; // e.g. "11:00 PM"
+      const wakeTimeInput = document.getElementById('wakeTime').value; // e.g. "06:30 AM"
+
+      const payload = {
+        sleep_date: dateStr,
+        duration_hours: durationHours,
+        quality_score: qualityScore,
+        // Backend handles these if they fail parsing but let's try sending null if complex
+        bedtime: null, 
+        wake_time: null,
+        notes: ""
       };
-      localStorage.setItem('shd_sleep_log', JSON.stringify(sleep));
-      renderSleepTracker();
-      alert('Sleep log saved successfully!');
+
+      try {
+        const res = await fetch(`${API_URL}/tracking/sleep`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token 
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          renderSleepTracker();
+          alert('Sleep log saved successfully!');
+        } else {
+          alert('Failed to log sleep: ' + data.message);
+        }
+      } catch (err) {
+        console.error("Error logging sleep:", err);
+      }
     });
 
     document.addEventListener('DOMContentLoaded', renderSleepTracker);
