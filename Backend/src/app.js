@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
-import testRoutes from "./routes/test.routes.js";
+
+import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
@@ -13,6 +15,16 @@ app.get("/", (req, res) => {
     });
 });
 
-app.use("/api/test", testRoutes);
+//authentication
+app.use("/api/auth", authRoutes);
+
+app.use("/api/users", userRoutes);
+
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route not found"
+    });
+});
 
 export default app;

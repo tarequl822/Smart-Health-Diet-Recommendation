@@ -58,6 +58,23 @@ document.addEventListener('DOMContentLoaded', function () {
     closeModal: function (modalId) {
       const modal = document.getElementById(modalId);
       if (modal) modal.classList.remove('active');
+    },
+    logout: async function () {
+      try {
+        await fetch('http://localhost:5000/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('shd_token')
+          }
+        });
+      } catch (e) {
+        console.error("Logout request failed", e);
+      }
+      localStorage.removeItem('shd_token');
+      localStorage.removeItem('shd_current_user');
+      document.cookie = "shd_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = '../auth/login.html';
     }
   };
 });
