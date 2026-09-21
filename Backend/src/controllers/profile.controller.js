@@ -8,7 +8,7 @@ export const getProfile = async (req, res) => {
         const result = await pool.query(
             `
             SELECT 
-                age, gender, height_cm, current_weight_kg, target_weight_kg, 
+                age, gender, height_cm, starting_weight_kg, current_weight_kg, target_weight_kg, 
                 primary_goal, daily_calorie_target, water_target_liters, sleep_target_hours
             FROM user_profiles
             WHERE account_id = $1
@@ -51,15 +51,16 @@ export const updateProfile = async (req, res) => {
         const result = await pool.query(
             `
             INSERT INTO user_profiles (
-                account_id, age, gender, height_cm, current_weight_kg, 
+                account_id, age, gender, height_cm, starting_weight_kg, current_weight_kg, 
                 target_weight_kg, primary_goal, daily_calorie_target, 
                 water_target_liters, sleep_target_hours, updated_at
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+            VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
             ON CONFLICT (account_id) DO UPDATE SET
                 age = EXCLUDED.age,
                 gender = EXCLUDED.gender,
                 height_cm = EXCLUDED.height_cm,
+                starting_weight_kg = COALESCE(user_profiles.starting_weight_kg, EXCLUDED.starting_weight_kg),
                 current_weight_kg = EXCLUDED.current_weight_kg,
                 target_weight_kg = EXCLUDED.target_weight_kg,
                 primary_goal = EXCLUDED.primary_goal,

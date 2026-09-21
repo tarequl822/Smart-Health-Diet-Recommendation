@@ -108,7 +108,7 @@ export const getProgressReport = async (req, res) => {
             pool.query(`SELECT daily_calorie_target, water_target_liters FROM user_profiles WHERE account_id = $1`, [userId]),
             pool.query(`SELECT logged_for, SUM(calories)::int AS calories FROM meal_logs WHERE user_id = $1 AND logged_for >= CURRENT_DATE - INTERVAL '30 days' GROUP BY logged_for ORDER BY logged_for`, [userId]),
             pool.query(`SELECT log_date, amount_liters, target_liters FROM water_logs WHERE user_id = $1 AND log_date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY log_date`, [userId]),
-            pool.query(`SELECT measured_on, weight_kg FROM weight_entries WHERE user_id = $1 ORDER BY measured_on DESC LIMIT 30`, [userId])
+            pool.query(`SELECT date, weight_kg FROM weight_entries WHERE user_id = $1 ORDER BY date DESC LIMIT 30`, [userId])
         ]);
         const target = Number(profile.rows[0]?.daily_calorie_target || 2000);
         const calorieRows = calories.rows.map(row => ({ ...row, calories: Number(row.calories) }));

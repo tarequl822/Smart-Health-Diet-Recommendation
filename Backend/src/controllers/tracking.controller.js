@@ -154,13 +154,17 @@ export const resetWater = async (req, res) => {
 export const logSleep = async (req, res) => {
     try {
         const userId = req.account.id;
-        const { sleep_date, duration_hours, quality_score, bedtime, wake_time, notes } = req.body;
+        const { date, sleep_date, duration_hours, quality_score, bedtime, wake_time, notes } = req.body;
+        const sleepDate = date || sleep_date || new Date().toISOString().split('T')[0];
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(sleepDate) || Number.isNaN(Date.parse(`${sleepDate}T00:00:00Z`))) {
+            return res.status(400).json({ success: false, message: "Sleep date must be a valid YYYY-MM-DD date" });
+        }
 
         const result = await pool.query(
             `
-            INSERT INTO sleep_logs (user_id, sleep_date, duration_hours, quality_score, bedtime, wake_time, notes)
+            INSERT INTO sleep_logs (user_id, date, duration_hours, quality_score, bedtime, wake_time, notes)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
-            ON CONFLICT (user_id, sleep_date) DO UPDATE SET
+            ON CONFLICT (user_id, date) DO UPDATE SET
                 duration_hours = EXCLUDED.duration_hours,
                 quality_score = EXCLUDED.quality_score,
                 bedtime = EXCLUDED.bedtime,
@@ -168,7 +172,7 @@ export const logSleep = async (req, res) => {
                 notes = EXCLUDED.notes
             RETURNING *;
             `,
-            [userId, sleep_date || new Date().toISOString().split('T')[0], duration_hours, quality_score, bedtime, wake_time, notes]
+            [userId, sleepDate, duration_hours, quality_score, bedtime, wake_time, notes]
         );
 
         return res.status(200).json({
@@ -185,7 +189,7 @@ export const getSleepLogs = async (req, res) => {
     try {
         const userId = req.account.id;
         const result = await pool.query(
-            `SELECT * FROM sleep_logs WHERE user_id = $1 ORDER BY sleep_date DESC LIMIT 30`,
+            `SELECT * FROM sleep_logs WHERE user_id = $1 ORDER BY date DESC LIMIT 30`,
             [userId]
         );
 
@@ -203,17 +207,24 @@ export const getSleepLogs = async (req, res) => {
 export const logWeight = async (req, res) => {
     try {
         const userId = req.account.id;
-        const { measured_on, weight_kg } = req.body;
+        const { date, measured_on, weight_kg } = req.body;
+        const measuredDate = date || measured_on || new Date().toISOString().split('T')[0];
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(measuredDate) || Number.isNaN(Date.parse(`${measuredDate}T00:00:00Z`))) {
+            return res.status(400).json({ success: false, message: "Weight date must be a valid YYYY-MM-DD date" });
+        }
+        if (!Number.isFinite(Number(weight_kg)) || Number(weight_kg) <= 0) {
+            return res.status(400).json({ success: false, message: "Weight must be greater than zero" });
+        }
 
         const result = await pool.query(
             `
-            INSERT INTO weight_entries (user_id, measured_on, weight_kg)
+            INSERT INTO weight_entries (user_id, date, weight_kg)
             VALUES ($1, $2, $3)
-            ON CONFLICT (user_id, measured_on) DO UPDATE SET
+            ON CONFLICT (user_id, date) DO UPDATE SET
                 weight_kg = EXCLUDED.weight_kg
             RETURNING *;
             `,
-            [userId, measured_on || new Date().toISOString().split('T')[0], weight_kg]
+            [userId, measuredDate, weight_kg]
         );
 
         // Also update current_weight_kg in user_profiles
@@ -228,7 +239,10 @@ export const logWeight = async (req, res) => {
         });
     } catch (error) {
         console.error("Error logging weight:", error);
-        return res.status(500).json({ success: false, message: "Failed to log weight" });
+        return res.status(500).json({
+            success: false,
+            message: process.env.NODE_ENV === "production" ? "Failed to log weight" : error.message
+        });
     }
 };
 
@@ -236,7 +250,7 @@ export const getWeightLogs = async (req, res) => {
     try {
         const userId = req.account.id;
         const result = await pool.query(
-            `SELECT * FROM weight_entries WHERE user_id = $1 ORDER BY measured_on DESC LIMIT 30`,
+            `SELECT * FROM weight_entries WHERE user_id = $1 ORDER BY date DESC LIMIT 30`,
             [userId]
         );
 
@@ -279,7 +293,7 @@ export const getDashboardSummary = async (req, res) => {
 
         // 4. Latest sleep
         const sleepResult = await pool.query(
-            `SELECT duration_hours, quality_score FROM sleep_logs WHERE user_id = $1 ORDER BY sleep_date DESC LIMIT 1`,
+            `SELECT duration_hours, quality_score FROM sleep_logs WHERE user_id = $1 ORDER BY date DESC LIMIT 1`,
             [userId]
         );
         const sleep = sleepResult.rows.length > 0 ? sleepResult.rows[0] : { duration_hours: 0, quality_score: 0 };

@@ -85,8 +85,8 @@ export const register = async (req, res) => {
         if (role === "user") {
             const { age, height_cm, current_weight_kg, primary_goal, daily_calorie_target } = req.body;
             await pool.query(
-                `INSERT INTO user_profiles (account_id, age, height_cm, current_weight_kg, primary_goal, daily_calorie_target)
-                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                `INSERT INTO user_profiles (account_id, age, height_cm, starting_weight_kg, current_weight_kg, primary_goal, daily_calorie_target)
+                 VALUES ($1, $2, $3, $4, $4, $5, $6)`,
                 [newUserId, age || null, height_cm || null, current_weight_kg || null, primary_goal || null, daily_calorie_target || 2000]
             );
         } else {

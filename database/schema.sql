@@ -34,6 +34,7 @@ CREATE TABLE user_profiles (
     age SMALLINT CHECK (age BETWEEN 1 AND 130),
     gender VARCHAR(30) CHECK (gender IN ('female', 'male', 'other', 'prefer_not_to_say')),
     height_cm NUMERIC(5, 2) CHECK (height_cm > 0 AND height_cm < 300),
+    starting_weight_kg NUMERIC(6, 2) CHECK (starting_weight_kg > 0 AND starting_weight_kg < 1000),
     current_weight_kg NUMERIC(6, 2) CHECK (current_weight_kg > 0 AND current_weight_kg < 1000),
     target_weight_kg NUMERIC(6, 2) CHECK (target_weight_kg > 0 AND target_weight_kg < 1000),
     primary_goal VARCHAR(150),
@@ -157,27 +158,27 @@ CREATE TABLE water_logs (
 CREATE TABLE sleep_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    sleep_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     duration_hours NUMERIC(4, 2) NOT NULL CHECK (duration_hours >= 0 AND duration_hours < 24),
     quality_score SMALLINT CHECK (quality_score BETWEEN 0 AND 100),
     bedtime TIMESTAMPTZ,
     wake_time TIMESTAMPTZ,
     notes TEXT,
-    UNIQUE (user_id, sleep_date)
+    UNIQUE (user_id, date)
 );
 
-CREATE INDEX sleep_logs_user_date_idx ON sleep_logs (user_id, sleep_date DESC);
+CREATE INDEX sleep_logs_user_date_idx ON sleep_logs (user_id, date DESC);
 
 CREATE TABLE weight_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    measured_on DATE NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
     weight_kg NUMERIC(6, 2) NOT NULL CHECK (weight_kg > 0 AND weight_kg < 1000),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (user_id, measured_on)
+    UNIQUE (user_id, date)
 );
 
-CREATE INDEX weight_entries_user_date_idx ON weight_entries (user_id, measured_on DESC);
+CREATE INDEX weight_entries_user_date_idx ON weight_entries (user_id, date DESC);
 
 CREATE TABLE guidance_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -258,8 +259,8 @@ WITH ranked_weights AS (
     SELECT
         user_id,
         weight_kg,
-        ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY measured_on ASC) AS first_row,
-        ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY measured_on DESC) AS latest_row
+        ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY date ASC) AS first_row,
+        ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY date DESC) AS latest_row
     FROM weight_entries
 )
 SELECT
