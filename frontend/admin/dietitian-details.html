@@ -211,6 +211,32 @@
           <a href="dietitian-approvals.html" class="btn btn-primary btn-sm">Go to Dietitian Registrations</a>
         </div>
 
+        <!-- Master List Container -->
+        <div id="dietitianMasterList" class="card" style="display: none;">
+          <div class="card-header flex flex-col md:flex-row justify-between gap-4 items-center">
+            <div>
+              <h2 class="card-title">Registered Dietitians</h2>
+              <span class="text-xs text-muted block">View and manage dietitian profiles. Click on a dietitian to view their full details.</span>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Dietitian Name</th>
+                  <th>Specialty</th>
+                  <th>Experience</th>
+                  <th>Rating</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dietitianMasterTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Main Details Container -->
         <div id="dietitianDetailsContainer" style="display: none;">
 

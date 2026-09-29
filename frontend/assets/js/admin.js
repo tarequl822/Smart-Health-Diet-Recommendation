@@ -305,7 +305,66 @@
 
     if (searchInput) searchInput.addEventListener('input', () => filterAndRenderUsers());
     if (statusSelect) statusSelect.addEventListener('change', () => filterAndRenderUsers());
+
+    const editUserForm = document.getElementById('editUserForm');
+    if (editUserForm) {
+      editUserForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!currentViewingUser) return;
+        
+        const payload = {
+          name: document.getElementById('editUserName').value,
+          email: document.getElementById('editUserEmail').value,
+          age: parseInt(document.getElementById('editUserAge').value) || null,
+          gender: document.getElementById('editUserGender').value,
+          height: parseFloat(document.getElementById('editUserHeight').value) || null,
+          weight: parseFloat(document.getElementById('editUserWeight').value) || null,
+          targetWeight: parseFloat(document.getElementById('editUserTargetWeight').value) || null,
+          dailyCalorieLimit: parseInt(document.getElementById('editUserCalorieLimit').value) || null,
+          goal: document.getElementById('editUserGoal').value
+        };
+
+        const res = await adminFetch(`/admin/users/${currentViewingUser.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+
+        if (res && res.success) {
+          SHD_Admin.closeModal('editUserModal');
+          SHD_Admin.showNotification('User profile updated successfully!', 'success');
+          await fetchAndRenderUsers();
+          SHD_Admin.showUserDetails(currentViewingUser.id);
+        } else if (window.SHD_Data) {
+          SHD_Admin.closeModal('editUserModal');
+          Object.assign(currentViewingUser, payload);
+          SHD_Admin.showNotification('User profile updated successfully (Local)!', 'success');
+          filterAndRenderUsers();
+          SHD_Admin.showUserDetails(currentViewingUser.id);
+        } else {
+          SHD_Admin.showNotification(res?.message || 'Failed to update user profile.', 'danger');
+        }
+      });
+    }
   }
+
+  window.SHD_Admin.openEditUserModal = function () {
+    if (!currentViewingUser) return;
+    document.getElementById('editUserName').value = currentViewingUser.name || '';
+    document.getElementById('editUserEmail').value = currentViewingUser.email || '';
+    document.getElementById('editUserAge').value = currentViewingUser.age || '';
+    const genderSelect = document.getElementById('editUserGender');
+    if (genderSelect) {
+      const g = (currentViewingUser.gender || 'other').toLowerCase();
+      genderSelect.value = ["male", "female", "other"].includes(g) ? g : 'other';
+    }
+    document.getElementById('editUserHeight').value = currentViewingUser.height || currentViewingUser.height_cm || '';
+    document.getElementById('editUserWeight').value = currentViewingUser.weight || currentViewingUser.current_weight_kg || '';
+    document.getElementById('editUserTargetWeight').value = currentViewingUser.targetWeight || currentViewingUser.target_weight_kg || '';
+    document.getElementById('editUserCalorieLimit').value = currentViewingUser.dailyCalorieLimit || currentViewingUser.daily_calorie_target || '';
+    document.getElementById('editUserGoal').value = currentViewingUser.goal || currentViewingUser.primary_goal || '';
+    
+    SHD_Admin.openModal('editUserModal');
+  };
 
   async function fetchAndRenderUsers() {
     const data = await adminFetch('/admin/users');
@@ -1395,22 +1454,60 @@
     const loadingState = document.getElementById('dietitianLoadingState');
     const noDietitianState = document.getElementById('noDietitianState');
     const detailsContainer = document.getElementById('dietitianDetailsContainer');
+    const masterList = document.getElementById('dietitianMasterList');
+    const switcherWrapper = document.querySelector('.dietitian-selector-wrapper');
 
     if (dietitians.length === 0) {
       if (loadingState) loadingState.style.display = 'none';
       if (detailsContainer) detailsContainer.style.display = 'none';
+      if (masterList) masterList.style.display = 'none';
+      if (switcherWrapper) switcherWrapper.style.display = 'none';
       if (noDietitianState) noDietitianState.style.display = 'block';
       return;
     }
 
     if (noDietitianState) noDietitianState.style.display = 'none';
 
-    // If targetId is missing or doesn't match any registered dietitian:
     if (!targetId || !dietitians.some(d => String(d.id) === String(targetId))) {
-      targetId = dietitians[0].id;
-      const newUrl = `${window.location.pathname}?id=${targetId}`;
-      window.history.replaceState({ id: targetId }, '', newUrl);
+      // Show master list
+      if (loadingState) loadingState.style.display = 'none';
+      if (detailsContainer) detailsContainer.style.display = 'none';
+      if (switcherWrapper) switcherWrapper.style.display = 'none';
+      if (masterList) {
+        masterList.style.display = 'block';
+        const tbody = document.getElementById('dietitianMasterTableBody');
+        if (tbody) {
+          tbody.innerHTML = dietitians.map(d => `
+            <tr>
+              <td class="font-bold">
+                <div class="flex items-center gap-3">
+                  <img src="${d.avatar || 'https://images.unsplash.com/photo-1594824813566-78a933f2c38f?w=150'}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                  <div>
+                    <div style="color: var(--text-main); font-weight: 700;">${d.name}</div>
+                    <span class="text-xs text-muted block">${d.email}</span>
+                  </div>
+                </div>
+              </td>
+              <td>${d.specialty || 'Dietitian'}</td>
+              <td>${d.experience || 'N/A'}</td>
+              <td>★ ${d.rating || 'N/A'}</td>
+              <td>
+                <span class="badge ${d.status?.toLowerCase() === 'approved' ? 'badge-success' : (d.status?.toLowerCase() === 'pending' ? 'badge-warning' : 'badge-danger')}">
+                  ${d.status || 'Active'}
+                </span>
+              </td>
+              <td>
+                <a href="dietitian-details.html?id=${encodeURIComponent(d.id)}" class="btn btn-primary btn-sm">View Details</a>
+              </td>
+            </tr>
+          `).join('');
+        }
+      }
+      return; // Stop execution, don't load specific details
     }
+
+    if (masterList) masterList.style.display = 'none';
+    if (switcherWrapper) switcherWrapper.style.display = 'block';
 
     if (switcher) {
       switcher.innerHTML = dietitians.map(d => `

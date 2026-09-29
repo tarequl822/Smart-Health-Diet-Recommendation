@@ -693,16 +693,15 @@ export const getDietitianById = async (req, res) => {
                 mp.title AS "mealPlanTitle",
                 mp.target_calories AS "mealPlanCalories",
                 mp.status AS "mealPlanStatus",
-                (SELECT COUNT(*)::int FROM messages m JOIN conversations conv ON conv.id = m.conversation_id WHERE conv.patient_id = u.id AND conv.dietitian_id = $1) AS "messageCount",
-                (SELECT to_char(MAX(m.sent_at), 'Mon DD, YYYY') FROM messages m JOIN conversations conv ON conv.id = m.conversation_id WHERE conv.patient_id = u.id AND conv.dietitian_id = $1) AS "lastInteraction"
+                0 AS "messageCount",
+                NULL AS "lastInteraction"
              FROM accounts u
              LEFT JOIN user_profiles up ON up.account_id = u.id
              LEFT JOIN guidance_requests gr ON gr.patient_id = u.id AND gr.dietitian_id = $1
              LEFT JOIN meal_plans mp ON mp.patient_id = u.id AND mp.dietitian_id = $1 AND mp.status = 'active'
              WHERE u.role = 'user' AND (
                  gr.dietitian_id = $1 OR
-                 mp.dietitian_id = $1 OR
-                 EXISTS (SELECT 1 FROM conversations c WHERE c.patient_id = u.id AND c.dietitian_id = $1)
+                 mp.dietitian_id = $1
              )
              ORDER BY u.id, gr.created_at DESC NULLS LAST`,
             [id]
