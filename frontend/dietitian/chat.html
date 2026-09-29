@@ -92,10 +92,10 @@
           <div class="chat-main">
             
             <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); background-color: var(--bg-surface);" class="flex items-center gap-3">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+              <img id="chatHeaderAvatar" src="../assets/images/images.jpeg" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
               <div>
-                <strong style="display: block; font-size: 0.95rem;">Fatema Rifa</strong>
-                <span class="text-xs text-muted">Goal: Weight Loss | Calorie Target: 2,000 kcal</span>
+                <strong id="chatHeaderName" style="display: block; font-size: 0.95rem;">Select a Conversation</strong>
+                <span id="chatHeaderMeta" class="text-xs text-muted">Patient Consultation</span>
               </div>
             </div>
 
@@ -104,7 +104,7 @@
             </div>
 
             <form class="chat-input-area" id="dietitianInboxForm">
-              <input type="text" id="dietitianInboxInput" class="form-control" placeholder="Reply to Fatema Rifa..." required>
+              <input type="text" id="dietitianInboxInput" class="form-control" placeholder="Type a message..." required>
               <button type="submit" class="btn btn-primary">
                 Send Reply
               </button>

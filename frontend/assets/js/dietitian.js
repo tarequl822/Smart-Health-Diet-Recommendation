@@ -462,6 +462,18 @@
         </div>
       `;
     }
+
+    // Disable the verification button if approved
+    const verifyBtn = document.getElementById('requestVerificationBtn');
+    if (verifyBtn) {
+      if (status === 'approved') {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Profile Verified';
+      } else {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Submit Profile for Verification';
+      }
+    }
   }
 
   /* ==========================================================================
@@ -657,7 +669,7 @@
           <div style="margin-top: 6px; font-size: 0.85rem; color: #92400e; background: #fef3c7; padding: 6px 10px; border-radius: 4px; border-left: 3px solid #d97706;">
             <strong>Patient Reason Note:</strong> "${escapeHtml(e.notes || 'No explanation note provided')}"
           </div>
-          <div class="text-xs text-muted" style="margin-top: 4px;">Logged at: ${new Date(e.logged_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+          <div class="text-xs text-muted" style="margin-top: 4px;">Logged at: ${new Date(e.logged_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
         </div>
       `).join('');
     }
@@ -688,7 +700,7 @@
     } else {
       historyTbody.innerHTML = recentLogs.map(l => `
         <tr>
-          <td>${new Date(l.logged_for).toLocaleDateString([], {month:'short', day:'numeric'})}</td>
+          <td>${new Date(l.logged_for).toLocaleDateString([], { month: 'short', day: 'numeric' })}</td>
           <td><span class="badge ${l.is_extra ? 'badge-warning' : 'badge-primary'}" style="font-size: 0.7rem;">${l.category}</span></td>
           <td class="font-bold">${escapeHtml(l.meal_name)}</td>
           <td>${l.calories} kcal</td>
@@ -772,14 +784,13 @@
             </span>
           </td>
           <td>
-            ${
-              isPending
-                ? `<div class="flex gap-2">
+            ${isPending
+          ? `<div class="flex gap-2">
                      <button class="btn btn-primary btn-sm" onclick="window.SHD_Dietitian.handleRequest('${r.id}', 'accepted')">Accept</button>
                      <button class="btn btn-outline btn-sm text-danger" onclick="window.SHD_Dietitian.handleRequest('${r.id}', 'rejected')">Reject</button>
                    </div>`
-                : `<span class="text-muted text-sm">${isAccepted ? 'Assigned' : 'Declined'}</span>`
-            }
+          : `<span class="text-muted text-sm">${isAccepted ? 'Assigned' : 'Declined'}</span>`
+        }
           </td>
         </tr>
       `;
@@ -860,8 +871,8 @@
       if ((patientParam || patientIdParam) && selectPatient) {
         for (let i = 0; i < selectPatient.options.length; i++) {
           const opt = selectPatient.options[i];
-          if ((patientIdParam && opt.value === patientIdParam) || 
-              (patientParam && opt.text.toLowerCase().includes(patientParam.toLowerCase()))) {
+          if ((patientIdParam && opt.value === patientIdParam) ||
+            (patientParam && opt.text.toLowerCase().includes(patientParam.toLowerCase()))) {
             selectPatient.selectedIndex = i;
             break;
           }
@@ -1267,6 +1278,26 @@
       const startDate = document.getElementById('startDate')?.value || null;
       const endDate = document.getElementById('endDate')?.value || null;
 
+      // Auto-add any un-added items from the dropdowns just in case user forgot to click "Add Food"
+      categories.forEach(cat => {
+        const picker = document.getElementById(`foodPicker_${cat}`);
+        if (picker && picker.value) {
+          const opt = picker.selectedOptions[0];
+          selectedMealItems[cat].push({
+            id: picker.value,
+            name: opt.dataset.name || opt.text,
+            portion: opt.dataset.portion || '',
+            calories: parseInt(opt.dataset.cal) || 0,
+            protein: parseFloat(opt.dataset.p) || 0,
+            carbs: parseFloat(opt.dataset.c) || 0,
+            fat: parseFloat(opt.dataset.f) || 0,
+            custom: false
+          });
+          picker.selectedIndex = 0;
+          renderCategoryItems(cat);
+        }
+      });
+
       // Compile items array
       const items = [];
       categories.forEach(cat => {
@@ -1404,9 +1435,30 @@
           chatList.querySelectorAll('.chat-user-item').forEach(el => el.classList.remove('active'));
           item.classList.add('active');
           activeConversationId = item.getAttribute('data-conv');
+          const patientName = item.querySelector('strong').textContent;
+          const patientAvatar = item.querySelector('img').src;
+
+          const headerName = document.getElementById('chatHeaderName');
+          const headerAvatar = document.getElementById('chatHeaderAvatar');
+          if (headerName) headerName.textContent = patientName;
+          if (headerAvatar) headerAvatar.src = patientAvatar;
+          if (input) input.placeholder = `Reply to ${patientName}...`;
+
           loadMessages(activeConversationId);
         });
       });
+
+      // Initialize the first conversation's header
+      const firstItem = chatList.querySelector('.chat-user-item.active');
+      if (firstItem) {
+        const patientName = firstItem.querySelector('strong').textContent;
+        const patientAvatar = firstItem.querySelector('img').src;
+        const headerName = document.getElementById('chatHeaderName');
+        const headerAvatar = document.getElementById('chatHeaderAvatar');
+        if (headerName) headerName.textContent = patientName;
+        if (headerAvatar) headerAvatar.src = patientAvatar;
+        if (input) input.placeholder = `Reply to ${patientName}...`;
+      }
     }
 
     async function loadMessages(convId) {
