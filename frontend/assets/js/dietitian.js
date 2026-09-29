@@ -905,7 +905,7 @@
         `;
       }
 
-      function updatePatientMeta() {
+      async function updatePatientMeta() {
         const opt = selectPatient.selectedOptions[0];
         if (opt && opt.value) {
           const goal = opt.dataset.goal || 'General Nutrition';
@@ -918,6 +918,66 @@
           if (targetCalInput && (!targetCalInput.value || targetCalInput.value === '2000')) {
             targetCalInput.value = cal;
           }
+
+          // Fetch active meal plan
+          try {
+            const adherence = await dietitianFetch(`/dietitian/patients/${opt.value}/adherence`);
+            if (adherence && adherence.success && adherence.activePlan) {
+              const p = adherence.activePlan;
+              if (document.getElementById('planTitleSelect')) {
+                const titleOpts = Array.from(document.getElementById('planTitleSelect').options);
+                if (!titleOpts.some(o => o.value === p.title)) {
+                  document.getElementById('planTitleSelect').value = '__custom__';
+                  if (document.getElementById('customTitleWrap')) document.getElementById('customTitleWrap').style.display = 'block';
+                  if (document.getElementById('customPlanTitle')) document.getElementById('customPlanTitle').value = p.title;
+                } else {
+                  document.getElementById('planTitleSelect').value = p.title;
+                }
+              }
+              if (p.target_calories && targetCalInput) targetCalInput.value = p.target_calories;
+              if (p.start_date && document.getElementById('startDate')) document.getElementById('startDate').value = p.start_date.split('T')[0];
+              if (p.end_date && document.getElementById('endDate')) document.getElementById('endDate').value = p.end_date.split('T')[0];
+
+              // Reset selected items
+              const cats = ['breakfast', 'lunch', 'dinner', 'snacks'];
+              cats.forEach(cat => {
+                if (selectedMealItems[cat]) selectedMealItems[cat] = [];
+              });
+              
+              if (p.items && p.items.length) {
+                p.items.forEach(item => {
+                   if (item && item.category && selectedMealItems[item.category]) {
+                      const match = item.recommendation.match(/^(.*?)(?:\s+\((.*?)\))?\s+\[(\d+)\s+kcal(?:,\s+P:([\d.]+)g,\s+C:([\d.]+)g,\s+F:([\d.]+)g)?\]$/);
+                      if (match) {
+                          selectedMealItems[item.category].push({
+                              name: match[1].trim(),
+                              portion: match[2] || '',
+                              calories: parseInt(match[3]) || 0,
+                              protein: parseFloat(match[4]) || 0,
+                              carbs: parseFloat(match[5]) || 0,
+                              fat: parseFloat(match[6]) || 0,
+                              custom: true
+                          });
+                      } else {
+                          selectedMealItems[item.category].push({
+                              name: item.recommendation,
+                              calories: 0,
+                              portion: '',
+                              custom: true
+                          });
+                      }
+                   }
+                });
+              }
+              cats.forEach(cat => { if (typeof renderCategoryItems === 'function') renderCategoryItems(cat); });
+              SHD_Dietitian.showNotification('Loaded active meal plan for patient.', 'info');
+            } else {
+               const cats = ['breakfast', 'lunch', 'dinner', 'snacks'];
+               cats.forEach(cat => { if (selectedMealItems[cat]) selectedMealItems[cat] = []; });
+               cats.forEach(cat => { if (typeof renderCategoryItems === 'function') renderCategoryItems(cat); });
+            }
+          } catch (e) { console.error('Failed to load active plan', e); }
+
         } else if (patientHint) {
           patientHint.textContent = 'Select an assigned patient to auto-sync their target calories and health goal.';
         }

@@ -144,8 +144,12 @@ export const listConversations = async (req, res) => {
     try {
         const column = req.account.role === "user" ? "c.patient_id" : "c.dietitian_id";
         const result = await pool.query(
-            `SELECT c.id, c.patient_id, c.dietitian_id, p.full_name AS patient_name, d.full_name AS dietitian_name
-             FROM conversations c JOIN accounts p ON p.id = c.patient_id JOIN accounts d ON d.id = c.dietitian_id
+            `SELECT c.id, c.patient_id, c.dietitian_id, p.full_name AS patient_name, d.full_name AS dietitian_name,
+                    dp.avatar_url AS dietitian_avatar, dp.specialty AS dietitian_specialty
+             FROM conversations c 
+             JOIN accounts p ON p.id = c.patient_id 
+             JOIN accounts d ON d.id = c.dietitian_id
+             LEFT JOIN dietitian_profiles dp ON dp.account_id = c.dietitian_id
              WHERE ${column} = $1 ORDER BY c.created_at DESC`,
             [req.account.id]
         );
