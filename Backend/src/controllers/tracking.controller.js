@@ -130,6 +130,15 @@ export const getWater = async (req, res) => {
         const userId = req.account.id;
         const { date } = req.query;
 
+        // Fetch user configured target from user_profiles
+        const profileResult = await pool.query(
+            `SELECT water_target_liters FROM user_profiles WHERE account_id = $1`,
+            [userId]
+        );
+        const defaultTarget = profileResult.rows.length > 0 && profileResult.rows[0].water_target_liters 
+            ? parseFloat(profileResult.rows[0].water_target_liters) 
+            : 2.50;
+
         let query = `SELECT * FROM water_logs WHERE user_id = $1`;
         const params = [userId];
 
@@ -144,11 +153,55 @@ export const getWater = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            water: result.rows.length > 0 ? result.rows[0] : { amount_liters: 0, target_liters: 2.50 }
+            water: result.rows.length > 0 
+                ? { ...result.rows[0], target_liters: parseFloat(result.rows[0].target_liters) || defaultTarget }
+                : { amount_liters: 0, target_liters: defaultTarget }
         });
     } catch (error) {
         console.error("Error fetching water:", error);
         return res.status(500).json({ success: false, message: "Failed to fetch water" });
+    }
+};
+
+export const updateWaterGoal = async (req, res) => {
+    try {
+        const userId = req.account.id;
+        const { target_liters } = req.body;
+
+        const target = parseFloat(target_liters);
+        if (isNaN(target) || target <= 0 || target > 20) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid daily water goal between 0.5 and 20 liters"
+            });
+        }
+
+        // Upsert user_profiles water_target_liters
+        await pool.query(
+            `INSERT INTO user_profiles (account_id, water_target_liters, updated_at)
+             VALUES ($1, $2, CURRENT_TIMESTAMP)
+             ON CONFLICT (account_id) DO UPDATE SET
+                 water_target_liters = EXCLUDED.water_target_liters,
+                 updated_at = CURRENT_TIMESTAMP`,
+            [userId, target]
+        );
+
+        // Also update today's water_log target_liters if it exists
+        await pool.query(
+            `UPDATE water_logs
+             SET target_liters = $2, updated_at = CURRENT_TIMESTAMP
+             WHERE user_id = $1 AND log_date = CURRENT_DATE`,
+            [userId, target]
+        );
+
+        return res.status(200).json({
+            success: true,
+            target_liters: target,
+            message: "Water goal updated successfully"
+        });
+    } catch (error) {
+        console.error("Error updating water goal:", error);
+        return res.status(500).json({ success: false, message: "Failed to update water goal" });
     }
 };
 

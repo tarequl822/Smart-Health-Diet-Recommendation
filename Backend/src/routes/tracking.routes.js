@@ -1,7 +1,7 @@
 import express from "express";
 import { 
     logMeal, getMealsByDate, deleteMeal, clearTodayMeals,
-    logWater, getWater, resetWater, getMonthlyWater,
+    logWater, getWater, resetWater, getMonthlyWater, updateWaterGoal,
     logSleep, getSleepLogs, getMonthlySleep,
     logWeight, getWeightLogs,
     getDashboardSummary
@@ -26,6 +26,8 @@ router.post("/water", logWater);
 router.get("/water", getWater);
 router.get("/water/monthly", getMonthlyWater);
 router.delete("/water", resetWater);
+router.put("/water/goal", updateWaterGoal);
+router.post("/water/goal", updateWaterGoal);
 
 // Sleep
 router.post("/sleep", logSleep);

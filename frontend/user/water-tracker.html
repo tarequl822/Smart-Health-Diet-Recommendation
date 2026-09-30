@@ -142,9 +142,15 @@
           
           <!-- Water Progress Glass Display (2 Cols) -->
           <div class="card text-center" style="grid-column: span 2;">
-            <div class="card-header">
-              <h2 class="card-title">Hydration Status Today</h2>
-              <span class="badge badge-primary">Target: 2.5 Liters</span>
+            <div class="card-header" style="flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+              <h2 class="card-title" style="margin: 0;">Hydration Status Today</h2>
+              <div class="flex items-center gap-2">
+                <span class="badge badge-primary" id="todayTargetBadge" style="cursor: pointer; transition: transform 0.15s ease;" onclick="openSetGoalModal()" title="Click to change daily water goal">Target: 2.5 Liters</span>
+                <button type="button" class="btn btn-secondary text-xs" style="padding: 5px 12px; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;" onclick="openSetGoalModal()" title="Customize daily water goal">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  Set Water Goal
+                </button>
+              </div>
             </div>
 
             <div style="margin: 32px 0;">
@@ -235,7 +241,10 @@
                 <span class="font-bold text-2xl" id="statAvgLiters" style="color: #2563eb;">0.0</span>
                 <span class="text-xs text-muted font-medium">L/day</span>
               </div>
-              <span class="text-xs text-muted" style="margin-top: 4px;" id="statTargetCompare">Target: 2.50 L</span>
+              <div class="flex items-center justify-between" style="margin-top: 4px;">
+                <span class="text-xs text-muted" id="statTargetCompare">Target: 2.50 L</span>
+                <button type="button" class="text-primary text-xs font-bold" onclick="openSetGoalModal()" style="background:none; border:none; padding:0 2px; cursor:pointer; text-decoration:underline;" title="Change daily water goal">Change</button>
+              </div>
             </div>
 
             <div class="stat-card" style="padding: 16px; border-radius: var(--radius-md); background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(52,211,153,0.02)); border: 1px solid rgba(16,185,129,0.18);">
@@ -301,6 +310,53 @@
     </div>
   </div>
 
+  <!-- Modal to set daily water goal -->
+  <div id="setWaterGoalModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="flex justify-between items-center" style="margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+        <div class="flex items-center gap-2">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: var(--radius-sm); background: #dbeafe; color: #2563eb;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </span>
+          <div>
+            <h3 class="font-bold text-base" style="color: var(--text-main); margin: 0;">Set Daily Water Goal</h3>
+            <span class="text-xs text-muted">Customize your personal hydration target</span>
+          </div>
+        </div>
+        <button type="button" class="btn text-muted" onclick="closeSetGoalModal()" style="font-size: 1.5rem; line-height: 1; padding: 0 4px; border: none; background: none; cursor: pointer;">&times;</button>
+      </div>
+
+      <form id="setGoalForm" onsubmit="handleSetGoalSubmit(event)">
+        <div style="margin-bottom: 16px;">
+          <label class="text-xs font-bold text-muted block" style="margin-bottom: 6px;">Daily Water Target (Liters / Day):</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="customGoalLiters" step="0.1" min="0.5" max="15.0" value="2.5" required style="flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 1.15rem; font-weight: 700; background: var(--bg-page); color: var(--text-main);">
+            <span class="font-bold text-muted" style="font-size: 0.95rem;">Liters</span>
+          </div>
+          <span class="text-xs text-muted block" style="margin-top: 10px; margin-bottom: 6px;">Quick Presets:</span>
+          <div class="flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-secondary text-xs" style="padding: 5px 9px;" onclick="selectGoalPreset(2.0)">2.0 L</button>
+            <button type="button" class="btn btn-secondary text-xs" style="padding: 5px 9px;" onclick="selectGoalPreset(2.5)">2.5 L (Std)</button>
+            <button type="button" class="btn btn-secondary text-xs" style="padding: 5px 9px;" onclick="selectGoalPreset(3.0)">3.0 L</button>
+            <button type="button" class="btn btn-secondary text-xs" style="padding: 5px 9px;" onclick="selectGoalPreset(3.5)">3.5 L (Active)</button>
+            <button type="button" class="btn btn-secondary text-xs" style="padding: 5px 9px;" onclick="selectGoalPreset(4.0)">4.0 L</button>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-page); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-bottom: 20px;">
+          <p class="text-xs text-muted" style="margin: 0; line-height: 1.5;">
+            💡 <strong>Guideline:</strong> A daily target between <strong>2.5 L and 3.5 L</strong> is optimal for most adults to sustain physical endurance, mental focus, and healthy digestion.
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-3" style="border-top: 1px solid var(--border); padding-top: 16px;">
+          <button type="button" class="btn btn-outline" onclick="closeSetGoalModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveGoalBtn">Save Daily Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal to log water for a specific date -->
   <div id="logDateModal" class="modal-backdrop" style="display: none;">
     <div class="modal-card">
@@ -337,6 +393,7 @@
     let currentSelectedMonth = '';
     let currentDiagramView = 'daily';
     let currentMonthData = null;
+    let currentTargetLiters = 2.5;
 
     function getToken() {
       return localStorage.getItem('shd_token');
@@ -363,12 +420,13 @@
           const w = data.water;
           const currentAmount = parseFloat(w.amount_liters) || 0;
           const targetAmount = parseFloat(w.target_liters) || 2.5;
+          currentTargetLiters = targetAmount;
 
           document.getElementById('currentWaterLiters').textContent = currentAmount.toFixed(2);
           const pct = Math.min(100, Math.round((currentAmount / targetAmount) * 100));
           document.getElementById('waterLevelFill').style.height = pct + '%';
           
-          const targetBadge = document.querySelector('.card-header .badge');
+          const targetBadge = document.getElementById('todayTargetBadge') || document.querySelector('.card-header .badge');
           if (targetBadge) {
               targetBadge.textContent = `Target: ${targetAmount.toFixed(1)} Liters`;
           }
@@ -796,6 +854,68 @@
         await renderWaterTracker();
         await loadMonthlyWater(currentSelectedMonth);
       } catch (err) { alert(err.message); }
+    }
+
+    // Modal functions for setting daily water goal
+    function openSetGoalModal() {
+      const modal = document.getElementById('setWaterGoalModal');
+      const input = document.getElementById('customGoalLiters');
+      if (input) input.value = currentTargetLiters.toFixed(1);
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeSetGoalModal() {
+      const modal = document.getElementById('setWaterGoalModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function selectGoalPreset(val) {
+      const input = document.getElementById('customGoalLiters');
+      if (input) input.value = parseFloat(val).toFixed(1);
+    }
+
+    async function handleSetGoalSubmit(e) {
+      e.preventDefault();
+      const token = getToken();
+      if (!token) return;
+
+      const target = parseFloat(document.getElementById('customGoalLiters').value);
+      if (isNaN(target) || target < 0.5 || target > 20) {
+        alert('Please enter a realistic water target between 0.5 and 20 liters.');
+        return;
+      }
+
+      const btn = document.getElementById('saveGoalBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await fetch(`${API_URL}/tracking/water/goal`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ target_liters: target })
+        });
+        const data = await res.json();
+        btn.disabled = false;
+        btn.textContent = 'Save Daily Goal';
+
+        if (data.success) {
+          currentTargetLiters = target;
+          closeSetGoalModal();
+          await renderWaterTracker();
+          await loadMonthlyWater(currentSelectedMonth);
+        } else {
+          alert('Failed to update water goal: ' + (data.message || 'Unknown error'));
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Save Daily Goal';
+        console.error('Error updating water goal:', err);
+        alert('Failed to save water goal due to a network error.');
+      }
     }
 
     // Modal functions for logging specific date

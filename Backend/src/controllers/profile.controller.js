@@ -135,8 +135,8 @@ export const updateProfile = async (req, res) => {
                 target_weight_kg !== undefined && target_weight_kg !== null && target_weight_kg !== "" ? parseFloat(target_weight_kg) : null, 
                 primary_goal || null, 
                 daily_calorie_target !== undefined && daily_calorie_target !== null && daily_calorie_target !== "" ? parseInt(daily_calorie_target) : null,
-                water_target_liters || 2.50, 
-                sleep_target_hours || 8.00,
+                water_target_liters !== undefined && water_target_liters !== null && water_target_liters !== "" ? parseFloat(water_target_liters) : null, 
+                sleep_target_hours !== undefined && sleep_target_hours !== null && sleep_target_hours !== "" ? parseFloat(sleep_target_hours) : null,
                 avatar_url !== undefined ? avatar_url : null
             ]
         );
